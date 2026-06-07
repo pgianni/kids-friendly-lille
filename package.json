@@ -5,10 +5,10 @@
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.107.0",
     "@vitejs/plugin-react": "^5.1.1",
-    "vite": "^7.2.7",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1"
-  },
-  "devDependencies": {}
+    "react-dom": "^19.2.1",
+    "vite": "^7.2.7"
+  }
 }

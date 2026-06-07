@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { boards, categoryMeta, filters, places } from "./data";
 import { LILLE_CENTER, googlePinIcon, loadGoogleMaps, scoreLabel } from "./mapUtils";
+import { isSupabaseConfigured, supabase } from "./supabase";
 
 function PlaceCard({ place, onOpen, stacked = false }) {
   const [label, scoreClass, dot] = scoreLabel(place.score);
@@ -118,9 +119,12 @@ export default function App() {
   const [zoom, setZoom] = useState(12);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const [favorites, setFavorites] = useState(() => new Set(JSON.parse(localStorage.getItem("kidsFriendlyFavorites") || "[]")));
-  const [signedIn, setSignedIn] = useState(() => localStorage.getItem("kidsFriendlySignedIn") === "true");
+  const [user, setUser] = useState(null);
   const [toast, setToast] = useState("");
   const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("signin");
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [contribution, setContribution] = useState(null);
   const [board, setBoard] = useState("week");
@@ -135,6 +139,7 @@ export default function App() {
   }, [activeFilters, query]);
 
   const selectedPlace = places.find((place) => place.id === selectedPlaceId);
+  const signedIn = Boolean(user);
 
   function showToast(message) {
     setToast(message);
@@ -146,6 +151,7 @@ export default function App() {
     if (signedIn) action();
     else {
       setPendingAction(() => action);
+      setAuthMode("signin");
       setAuthOpen(true);
     }
   }
@@ -343,6 +349,24 @@ export default function App() {
     localStorage.setItem("kidsFriendlyFavorites", JSON.stringify([...favorites]));
   }, [favorites]);
 
+  useEffect(() => {
+    if (!isSupabaseConfigured) return undefined;
+
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setUser(data.session?.user ?? null);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
   function toggleFilter(id) {
     setActiveFilters((current) => {
       const next = new Set(current);
@@ -370,16 +394,59 @@ export default function App() {
     });
   }
 
-  function submitLogin(event) {
+  async function submitLogin(event) {
     event.preventDefault();
-    setSignedIn(true);
-    localStorage.setItem("kidsFriendlySignedIn", "true");
-    setAuthOpen(false);
-    showToast("Connecté. Email de validation simulé.");
-    if (pendingAction) {
-      pendingAction();
-      setPendingAction(null);
+    setAuthError("");
+
+    if (!isSupabaseConfigured) {
+      setAuthError("Supabase n'est pas encore configuré. Ajoute VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY dans .env.");
+      return;
     }
+
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") || "");
+    const password = String(form.get("password") || "");
+    setAuthLoading(true);
+
+    try {
+      if (authMode === "signup") {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        if (data.session) {
+          setAuthOpen(false);
+          showToast("Compte créé et connecté.");
+          if (pendingAction) pendingAction();
+          setPendingAction(null);
+        } else {
+          setAuthOpen(false);
+          showToast("Compte créé. Vérifie ton email pour valider l'inscription.");
+        }
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      setAuthOpen(false);
+      showToast("Connecté.");
+      if (pendingAction) pendingAction();
+      setPendingAction(null);
+    } catch (error) {
+      setAuthError(error.message || "Connexion impossible.");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function handleAccountClick() {
+    if (!signedIn) {
+      setAuthMode("signin");
+      setAuthOpen(true);
+      return;
+    }
+
+    if (isSupabaseConfigured) await supabase.auth.signOut();
+    setUser(null);
+    showToast("Compte déconnecté.");
   }
 
   return (
@@ -390,7 +457,7 @@ export default function App() {
             <p className="eyebrow">MEL en famille</p>
             <h1>Kids Friendly Lille</h1>
           </div>
-          <button className="icon-btn" type="button" aria-label="Compte" onClick={() => signedIn ? (setSignedIn(false), localStorage.removeItem("kidsFriendlySignedIn"), showToast("Compte déconnecté.")) : setAuthOpen(true)}>
+          <button className="icon-btn" type="button" aria-label="Compte" onClick={handleAccountClick}>
             <span>👤</span>
           </button>
         </header>
@@ -478,12 +545,16 @@ export default function App() {
       {authOpen && (
         <dialog className="modal" open>
           <form className="modal-card" onSubmit={submitLogin}>
-            <button className="close-btn" type="button" onClick={() => setAuthOpen(false)} aria-label="Fermer">×</button>
+            <button className="close-btn" type="button" onClick={() => { setAuthOpen(false); setAuthError(""); }} aria-label="Fermer">×</button>
             <p className="eyebrow">Supabase Auth</p>
-            <h2>Connexion</h2>
-            <label>Email<input type="email" required placeholder="parent@example.com" /></label>
-            <label>Mot de passe<input type="password" required placeholder="••••••••" /></label>
-            <button className="primary-btn">Se connecter</button>
+            <h2>{authMode === "signin" ? "Connexion" : "Créer un compte"}</h2>
+            <label>Email<input name="email" type="email" required placeholder="parent@example.com" /></label>
+            <label>Mot de passe<input name="password" type="password" required minLength="6" placeholder="••••••••" /></label>
+            {authError && <p className="form-error">{authError}</p>}
+            <button className="primary-btn" disabled={authLoading}>{authLoading ? "Patiente..." : authMode === "signin" ? "Se connecter" : "Créer le compte"}</button>
+            <button className="text-btn" type="button" onClick={() => { setAuthMode(authMode === "signin" ? "signup" : "signin"); setAuthError(""); }}>
+              {authMode === "signin" ? "Créer un compte" : "J'ai déjà un compte"}
+            </button>
           </form>
         </dialog>
       )}
