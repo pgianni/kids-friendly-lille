@@ -1,22 +1,47 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { boards, categoryMeta, filters, places } from "./data";
 import { googleMapStyle } from "./googleMapStyle";
+import { AppIcon, iconMarkup } from "./iconLibrary.jsx";
 import { LILLE_CENTER, googlePinIcon, loadGoogleMaps, scoreLabel } from "./mapUtils";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
+function ScorePill({ score }) {
+  const [label, scoreClass] = scoreLabel(score);
+  return (
+    <span className={`score-pill ${scoreClass}`}>
+      <span className="score-dot" aria-hidden="true" />
+      {score}/100 · {label}
+    </span>
+  );
+}
+
+function CategoryMeta({ category, distance }) {
+  return (
+    <span className="place-meta">
+      <AppIcon id={categoryMeta[category].iconId} size={16} />
+      {category} · {distance.toFixed(1)} km
+    </span>
+  );
+}
+
+function RatingStars({ value }) {
+  return (
+    <span className="rating-stars" aria-label={`${value} sur 5`}>
+      {Array.from({ length: 5 }, (_, index) => (
+        <AppIcon key={index} id="star" size={13} weight={index < value ? "fill" : "regular"} />
+      ))}
+    </span>
+  );
+}
+
 function PlaceCard({ place, onOpen, stacked = false }) {
-  const [label, scoreClass, dot] = scoreLabel(place.score);
   return (
     <button className={stacked ? "stack-card" : "place-card"} type="button" onClick={() => onOpen(place.id)}>
       <img src={place.photo} alt="" loading="lazy" />
       <span className={stacked ? "stack-card-body" : "place-card-body"}>
-        <span className="place-meta">
-          {categoryMeta[place.category].icon} {place.category} · {place.distance.toFixed(1)} km
-        </span>
+        <CategoryMeta category={place.category} distance={place.distance} />
         <h3>{place.name}</h3>
-        <span className={`score-pill ${scoreClass}`}>
-          {dot} {place.score}/100 · {label}
-        </span>
+        <ScorePill score={place.score} />
       </span>
     </button>
   );
@@ -24,7 +49,6 @@ function PlaceCard({ place, onOpen, stacked = false }) {
 
 function PlaceSheet({ place, favorite, onClose, onFavorite, onContribute }) {
   if (!place) return <aside className="sheet" aria-hidden="true" />;
-  const [label, scoreClass, dot] = scoreLabel(place.score);
 
   return (
     <aside className="sheet is-open" aria-hidden="false">
@@ -35,19 +59,17 @@ function PlaceSheet({ place, favorite, onClose, onFavorite, onContribute }) {
           ×
         </button>
         <div className="hero-content">
-          <span className={`score-pill ${scoreClass}`}>
-            {dot} {place.score} / 100 · {label}
-          </span>
+          <ScorePill score={place.score} />
           <h2>{place.name}</h2>
-          <p>
-            {categoryMeta[place.category].icon} {place.category} · {place.distance.toFixed(1)} km
-          </p>
+          <CategoryMeta category={place.category} distance={place.distance} />
           <div className="hero-actions">
             <button className="action-btn" type="button" onClick={onFavorite}>
-              {favorite ? "❤️ Retirer" : "♡ Ajouter"}
+              <AppIcon id="favorite" size={18} weight={favorite ? "fill" : "duotone"} />
+              {favorite ? "Retirer" : "Ajouter"}
             </button>
             <a className="secondary-btn" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.address)}`} target="_blank" rel="noreferrer">
-              📍 Itinéraire
+              <AppIcon id="directions" size={18} />
+              Itinéraire
             </a>
           </div>
         </div>
@@ -56,9 +78,9 @@ function PlaceSheet({ place, favorite, onClose, onFavorite, onContribute }) {
       <section className="sheet-section">
         <h3>Équipements</h3>
         <div className="equipment-list">
-          {place.equipment.map(([icon, name, count]) => (
+          {place.equipment.map(([iconId, name, count]) => (
             <div className="equipment-item" key={name}>
-              <span>{icon}</span>
+              <AppIcon id={iconId} size={20} />
               <strong>{name}</strong>
               <small>{count} parents</small>
             </div>
@@ -66,10 +88,12 @@ function PlaceSheet({ place, favorite, onClose, onFavorite, onContribute }) {
         </div>
         <div className="action-row sheet-actions">
           <button className="secondary-btn" type="button" onClick={() => onContribute("Table à langer")}>
-            🚼 Confirmer
+            <AppIcon id="baby" size={18} />
+            Confirmer
           </button>
           <button className="secondary-btn" type="button" onClick={() => onContribute("Chaise bébé")}>
-            🪑 Confirmer
+            <AppIcon id="chair" size={18} />
+            Confirmer
           </button>
         </div>
       </section>
@@ -81,9 +105,9 @@ function PlaceSheet({ place, favorite, onClose, onFavorite, onContribute }) {
             <article className="review-card" key={`${review.author}-${review.age}`}>
               <strong>{review.author}</strong>
               <div className="review-grid">
-                <div><span>Accueil</span>{"★".repeat(review.welcome)}{"☆".repeat(5 - review.welcome)}</div>
-                <div><span>Confort</span>{"★".repeat(review.comfort)}{"☆".repeat(5 - review.comfort)}</div>
-                <div><span>Équipements</span>{"★".repeat(review.gear)}{"☆".repeat(5 - review.gear)}</div>
+                <div><span>Accueil</span><RatingStars value={review.welcome} /></div>
+                <div><span>Confort</span><RatingStars value={review.comfort} /></div>
+                <div><span>Équipements</span><RatingStars value={review.gear} /></div>
                 <div><span>Âge</span>{review.age}</div>
               </div>
               <p>{review.text}</p>
@@ -95,10 +119,10 @@ function PlaceSheet({ place, favorite, onClose, onFavorite, onContribute }) {
       <section className="sheet-section">
         <h3>Informations</h3>
         <div className="info-list">
-          <div>📍 {place.address}</div>
-          <div>🕒 {place.hours}</div>
-          <a href={`tel:${place.phone.replaceAll(" ", "")}`}>☎ {place.phone}</a>
-          <a href={place.website} target="_blank" rel="noreferrer">🌐 Site web</a>
+          <div><AppIcon id="address" size={18} />{place.address}</div>
+          <div><AppIcon id="time" size={18} />{place.hours}</div>
+          <a href={`tel:${place.phone.replaceAll(" ", "")}`}><AppIcon id="phone" size={18} />{place.phone}</a>
+          <a href={place.website} target="_blank" rel="noreferrer"><AppIcon id="globe" size={18} />Site web</a>
         </div>
       </section>
     </aside>
@@ -232,8 +256,7 @@ export default function App() {
           position: { lat: place.lat, lng: place.lng },
           map: map.current,
           title: `${place.name} - ${place.score}/100`,
-          icon: googlePinIcon(place.score),
-          label: { text: categoryMeta[place.category].icon, fontSize: "20px" },
+          icon: googlePinIcon(place.score, categoryMeta[place.category].iconId),
           optimized: false,
         });
         marker.addListener("click", () => openPlace(place.id));
@@ -246,7 +269,7 @@ export default function App() {
         const [, scoreClass] = scoreLabel(place.score);
         const marker = window.L.marker([place.lat, place.lng], {
           title: `${place.name} - ${place.score}/100`,
-          icon: window.L.divIcon({ className: `leaflet-kf-icon ${scoreClass}`, html: `<span>${categoryMeta[place.category].icon}</span>`, iconSize: [44, 44], iconAnchor: [22, 38] }),
+          icon: window.L.divIcon({ className: `leaflet-kf-icon ${scoreClass}`, html: iconMarkup(categoryMeta[place.category].iconId, 21), iconSize: [44, 44], iconAnchor: [22, 38] }),
         }).addTo(map.current).on("click", () => openPlace(place.id));
         markers.current.push(marker);
       });
@@ -459,7 +482,7 @@ export default function App() {
             <h1>Kids Friendly Lille</h1>
           </div>
           <button className="icon-btn" type="button" aria-label="Compte" onClick={handleAccountClick}>
-            <span>👤</span>
+            <AppIcon id="profile" size={25} />
           </button>
         </header>
 
@@ -467,16 +490,19 @@ export default function App() {
           <section className={`view view-map ${activeView === "mapView" ? "is-active" : ""}`} id="mapView" aria-labelledby="mapTitle">
             <div className="search-row">
               <label className="search-box" htmlFor="searchInput">
-                <span>⌕</span>
+                <AppIcon id="search" size={18} />
                 <input id="searchInput" type="search" placeholder="Lieu, quartier, équipement" autoComplete="off" value={query} onChange={(event) => setQuery(event.target.value)} />
               </label>
-              <button className="icon-btn locate" type="button" aria-label="Me localiser" onClick={locateUser}>⌖</button>
+              <button className="icon-btn locate" type="button" aria-label="Me localiser" onClick={locateUser}>
+                <AppIcon id="directions" size={22} />
+              </button>
             </div>
 
             <div className="filter-strip" aria-label="Filtres rapides">
               {filters.map((filter) => (
                 <button className={`chip ${activeFilters.has(filter.id) ? "is-active" : ""}`} type="button" key={filter.id} onClick={() => toggleFilter(filter.id)}>
-                  {filter.icon} {filter.label}
+                  <AppIcon id={filter.iconId} size={18} />
+                  {filter.label}
                 </button>
               ))}
             </div>
@@ -527,9 +553,10 @@ export default function App() {
         </main>
 
         <nav className="bottom-nav" aria-label="Navigation principale">
-          {[["mapView", "🗺", "Carte"], ["favoritesView", "❤️", "Favoris"], ["leaderboardView", "🏆", "Top"], ["submitView", "＋", "Lieu"]].map(([id, icon, label]) => (
+          {[["mapView", "map", "Carte"], ["favoritesView", "favorite", "Favoris"], ["leaderboardView", "trophy", "Top"], ["submitView", "plus", "Lieu"]].map(([id, iconId, label]) => (
             <button className={activeView === id ? "is-active" : ""} key={id} type="button" onClick={() => { setActiveView(id); setSelectedPlaceId(null); }}>
-              <span>{icon}</span>{label}
+              <AppIcon id={iconId} size={22} weight={activeView === id ? "fill" : "duotone"} />
+              {label}
             </button>
           ))}
         </nav>

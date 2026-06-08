@@ -1,24 +1,24 @@
 export const categoryMeta = {
-  Restaurant: { icon: "🍽", key: "restaurant" },
-  Café: { icon: "☕", key: "cafe" },
-  Parc: { icon: "🌳", key: "outdoor" },
-  Bibliothèque: { icon: "📚", key: "library" },
-  Piscine: { icon: "🏊", key: "pool" },
-  Musée: { icon: "🏛", key: "museum" },
-  "Centre commercial": { icon: "🛍", key: "mall" },
-  Activité: { icon: "🎲", key: "activity" },
+  Restaurant: { iconId: "food", key: "restaurant" },
+  Café: { iconId: "cafe", key: "cafe" },
+  Parc: { iconId: "tree", key: "outdoor" },
+  Bibliothèque: { iconId: "books", key: "library" },
+  Piscine: { iconId: "pool", key: "pool" },
+  Musée: { iconId: "museum", key: "museum" },
+  "Centre commercial": { iconId: "mall", key: "mall" },
+  Activité: { iconId: "activity", key: "activity" },
 };
 
 export const filters = [
-  { id: "changing_table", label: "Table à langer", icon: "🚼" },
-  { id: "high_chair", label: "Chaise bébé", icon: "🪑" },
-  { id: "play_corner", label: "Coin jeux", icon: "🛝" },
-  { id: "stroller", label: "Poussette OK", icon: "🚶" },
-  { id: "indoor", label: "Intérieur", icon: "☔" },
-  { id: "outdoor", label: "Extérieur", icon: "🌳" },
-  { id: "Restaurant", label: "Restaurant", icon: "🍽" },
-  { id: "Café", label: "Café", icon: "☕" },
-  { id: "Activité", label: "Activité", icon: "🎲" },
+  { id: "changing_table", label: "Table à langer", iconId: "baby" },
+  { id: "high_chair", label: "Chaise bébé", iconId: "chair" },
+  { id: "play_corner", label: "Coin jeux", iconId: "play" },
+  { id: "stroller", label: "Poussette OK", iconId: "stroller" },
+  { id: "indoor", label: "Intérieur", iconId: "indoor" },
+  { id: "outdoor", label: "Extérieur", iconId: "tree" },
+  { id: "Restaurant", label: "Restaurant", iconId: "food" },
+  { id: "Café", label: "Café", iconId: "cafe" },
+  { id: "Activité", label: "Activité", iconId: "activity" },
 ];
 
 export const places = [
@@ -36,7 +36,7 @@ export const places = [
     distance: 1.1,
     photo: "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=900&q=80",
     tags: ["indoor", "play_corner", "stroller"],
-    equipment: [["🎲", "Jeux de société enfants", 34], ["🚶", "Accessible poussette", 22], ["🧃", "Menu enfant", 18], ["☔", "Intérieur", 41]],
+    equipment: [["activity", "Jeux de société enfants", 34], ["stroller", "Accessible poussette", 22], ["food", "Menu enfant", 18], ["indoor", "Intérieur", 41]],
     reviews: [
       { author: "Camille", age: "4-8 ans", welcome: 5, comfort: 4, gear: 4, text: "Equipe très patiente, jeux bien expliqués et tables faciles à partager." },
       { author: "Nassim", age: "6-10 ans", welcome: 5, comfort: 4, gear: 5, text: "Bon plan pluie, on peut vraiment rester longtemps sans stress." },
@@ -56,7 +56,7 @@ export const places = [
     distance: 1.6,
     photo: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80",
     tags: ["outdoor", "play_corner", "stroller"],
-    equipment: [["🛝", "Aires de jeux", 67], ["🚶", "Accessible poussette", 53], ["🌳", "Espace extérieur", 82], ["🧺", "Pique-nique facile", 29]],
+    equipment: [["play", "Aires de jeux", 67], ["stroller", "Accessible poussette", 53], ["tree", "Espace extérieur", 82], ["picnic", "Pique-nique facile", 29]],
     reviews: [
       { author: "Lucie", age: "0-10 ans", welcome: 4, comfort: 4, gear: 4, text: "Grand espace, chemins praticables et beaucoup de pauses possibles." },
       { author: "Sarah", age: "2-6 ans", welcome: 4, comfort: 5, gear: 4, text: "Très pratique avec draisienne et poussette, surtout le matin." },
@@ -76,7 +76,7 @@ export const places = [
     distance: 0.5,
     photo: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
     tags: ["indoor", "changing_table", "high_chair", "stroller"],
-    equipment: [["🚼", "Table à langer", 16], ["🪑", "Chaise bébé", 21], ["🚶", "Accessible poussette", 12], ["🍼", "Chauffe biberon", 8]],
+    equipment: [["baby", "Table à langer", 16], ["chair", "Chaise bébé", 21], ["stroller", "Accessible poussette", 12], ["bottle", "Chauffe biberon", 8]],
     reviews: [
       { author: "Aline", age: "0-3 ans", welcome: 5, comfort: 4, gear: 4, text: "Petit mais vraiment accueillant, table à langer confirmée." },
       { author: "Jules", age: "1-4 ans", welcome: 4, comfort: 4, gear: 3, text: "Service sympa, mieux hors heure de pointe avec une poussette." },
@@ -96,7 +96,7 @@ export const places = [
     distance: 7.2,
     photo: "https://images.unsplash.com/photo-1544967082-d9d25d867d66?auto=format&fit=crop&w=900&q=80",
     tags: ["indoor", "outdoor", "stroller", "activity"],
-    equipment: [["🚶", "Accessible poussette", 38], ["🎨", "Ateliers enfants", 26], ["🌳", "Jardin de sculptures", 19], ["☔", "Intérieur", 40]],
+    equipment: [["stroller", "Accessible poussette", 38], ["sparkle", "Ateliers enfants", 26], ["tree", "Jardin de sculptures", 19], ["indoor", "Intérieur", 40]],
     reviews: [
       { author: "Marion", age: "5-10 ans", welcome: 5, comfort: 4, gear: 4, text: "Ateliers très adaptés, bonne circulation dans les salles." },
       { author: "Thomas", age: "3-7 ans", welcome: 4, comfort: 4, gear: 4, text: "Le jardin aide à faire une pause entre deux salles." },
@@ -116,7 +116,7 @@ export const places = [
     distance: 4.1,
     photo: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80",
     tags: ["indoor", "stroller", "play_corner"],
-    equipment: [["📚", "Espace jeunesse", 24], ["🚶", "Accessible poussette", 18], ["🛝", "Coin lecture enfants", 14], ["☔", "Intérieur", 23]],
+    equipment: [["books", "Espace jeunesse", 24], ["stroller", "Accessible poussette", 18], ["play", "Coin lecture enfants", 14], ["indoor", "Intérieur", 23]],
     reviews: [{ author: "Inès", age: "2-8 ans", welcome: 4, comfort: 4, gear: 3, text: "Calme, lumineux, bon espace jeunesse." }],
   },
   {
@@ -133,7 +133,7 @@ export const places = [
     distance: 1.0,
     photo: "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?auto=format&fit=crop&w=900&q=80",
     tags: ["indoor", "changing_table", "stroller"],
-    equipment: [["🚼", "Table à langer", 31], ["🚶", "Accessible poussette", 44], ["☔", "Intérieur", 50], ["🛗", "Ascenseurs", 28]],
+    equipment: [["baby", "Table à langer", 31], ["stroller", "Accessible poussette", 44], ["indoor", "Intérieur", 50], ["wheelchair", "Ascenseurs", 28]],
     reviews: [{ author: "Amel", age: "0-6 ans", welcome: 3, comfort: 4, gear: 4, text: "Pratique en dépannage, attention aux heures très chargées." }],
   },
   {
@@ -150,7 +150,7 @@ export const places = [
     distance: 2.2,
     photo: "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=900&q=80",
     tags: ["indoor", "changing_table"],
-    equipment: [["🚼", "Table à langer", 9], ["🏊", "Bassin enfant", 12], ["☔", "Intérieur", 16]],
+    equipment: [["baby", "Table à langer", 9], ["pool", "Bassin enfant", 12], ["indoor", "Intérieur", 16]],
     reviews: [{ author: "Paul", age: "3-8 ans", welcome: 3, comfort: 3, gear: 3, text: "Bassin agréable, vestiaires parfois serrés avec enfants." }],
   },
   {
@@ -167,7 +167,7 @@ export const places = [
     distance: 1.8,
     photo: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=900&q=80",
     tags: ["outdoor", "activity", "stroller"],
-    equipment: [["🎲", "Activités enfants", 45], ["🌳", "Espace extérieur", 39], ["🚶", "Accessible poussette", 23], ["🧼", "Point d'eau", 17]],
+    equipment: [["activity", "Activités enfants", 45], ["tree", "Espace extérieur", 39], ["stroller", "Accessible poussette", 23], ["water", "Point d'eau", 17]],
     reviews: [{ author: "Zoé", age: "1-8 ans", welcome: 5, comfort: 5, gear: 4, text: "Très vivant, parfait pour une sortie courte sans quitter Lille." }],
   },
 ];

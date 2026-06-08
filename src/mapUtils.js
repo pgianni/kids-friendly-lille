@@ -1,28 +1,33 @@
+import { iconMarkup } from "./iconLibrary.jsx";
+
 export const LILLE_CENTER = { lat: 50.6372, lng: 3.0633 };
 
 export function scoreLabel(score) {
-  if (score >= 85) return ["Kids First", "score-first", "🟢"];
-  if (score >= 70) return ["Kids Friendly", "score-friendly", "🟡"];
-  return ["Kids OK", "score-ok", "⚪"];
+  if (score >= 85) return ["Kids First", "score-first"];
+  if (score >= 70) return ["Kids Friendly", "score-friendly"];
+  return ["Kids OK", "score-ok"];
 }
 
 export function scoreColor(score) {
-  if (score >= 85) return { fill: "#47c878", stroke: "#187344" };
-  if (score >= 70) return { fill: "#ffd966", stroke: "#b58400" };
-  return { fill: "#ffffff", stroke: "#d6d6cb" };
+  if (score >= 85) return { fill: "#47c878", foreground: "#102416" };
+  if (score >= 70) return { fill: "#ffd966", foreground: "#1d1a08" };
+  return { fill: "#ffffff", foreground: "#23251f" };
 }
 
-export function googlePinIcon(score) {
+export function googlePinIcon(score, iconId) {
   const color = scoreColor(score);
+  const icon = iconMarkup(iconId, 21, "duotone")
+    .replace("<svg ", `<svg x="13.5" y="10.5" color="${color.foreground}" `)
+    .replace(/class="[^"]*"/, 'class="pin-icon"');
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-      <path d="M24 4C14.6 4 7 11.4 7 20.6c0 11.8 15.3 22.5 16 23a2 2 0 0 0 2 0c.7-.5 16-11.2 16-23C41 11.4 33.4 4 24 4Z" fill="${color.fill}" stroke="${color.stroke}" stroke-width="3"/>
+      <path d="M24 4C14.6 4 7 11.4 7 20.6c0 11.8 15.3 22.5 16 23a2 2 0 0 0 2 0c.7-.5 16-11.2 16-23C41 11.4 33.4 4 24 4Z" fill="${color.fill}"/>
+      <g transform="rotate(0 24 21)">${icon}</g>
     </svg>
   `;
   return {
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
     scaledSize: new window.google.maps.Size(44, 44),
-    labelOrigin: new window.google.maps.Point(22, 19),
   };
 }
 

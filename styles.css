@@ -47,6 +47,12 @@ button {
   cursor: pointer;
 }
 
+.app-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  vertical-align: -0.12em;
+}
+
 .app-shell {
   min-height: 100dvh;
   max-width: none;
@@ -237,6 +243,9 @@ body.map-active .view-map.is-active {
   font-size: 0.92rem;
   font-weight: 950;
   box-shadow: 0 12px 28px rgba(24, 28, 22, 0.11);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .chip.is-active {
@@ -413,25 +422,24 @@ body.map-active .view-map.is-active {
 }
 
 .marker span,
-.leaflet-kf-icon span,
-.google-kf-marker span {
+.leaflet-kf-icon .app-icon,
+.google-kf-marker .app-icon {
   transform: rotate(45deg);
-  font-size: 1.12rem;
 }
 
 .score-ok {
   background: #fff;
-  border: 2px solid #d6d6cb;
+  border: 0;
 }
 
 .score-friendly {
   background: var(--sun);
-  border: 2px solid #b58400;
+  border: 0;
 }
 
 .score-first {
   background: var(--brand);
-  border: 2px solid #128349;
+  border: 0;
 }
 
 .cluster {
@@ -597,6 +605,31 @@ body.map-active .view-map.is-active {
   box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12);
 }
 
+.score-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.35);
+  opacity: 0.62;
+}
+
+.score-pill.score-first .score-dot {
+  background: #0fae3c;
+}
+
+.score-pill.score-friendly .score-dot {
+  background: #d99b00;
+}
+
+.score-pill.score-ok .score-dot {
+  background: #9da199;
+}
+
+.hero .place-meta {
+  color: rgba(255, 255, 255, 0.88);
+}
+
 .sheet {
   position: fixed;
   left: 50%;
@@ -759,6 +792,10 @@ body.map-active .view-map.is-active {
   background: #f5f3ec;
 }
 
+.equipment-item .app-icon {
+  justify-self: center;
+}
+
 .equipment-item small {
   color: var(--muted);
   font-weight: 700;
@@ -794,6 +831,12 @@ body.map-active .view-map.is-active {
   display: block;
 }
 
+.rating-stars {
+  display: inline-flex;
+  gap: 1px;
+  color: #11160f;
+}
+
 .info-list {
   display: grid;
   gap: 10px;
@@ -808,6 +851,9 @@ body.map-active .view-map.is-active {
   padding: 12px;
   background: #f5f3ec;
   font-weight: 850;
+  display: flex;
+  align-items: center;
+  gap: 9px;
 }
 
 .section-head {
@@ -965,11 +1011,9 @@ textarea {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 950;
-}
-
-.bottom-nav span {
-  display: block;
-  font-size: 1.1rem;
+  display: grid;
+  place-items: center;
+  gap: 3px;
 }
 
 .bottom-nav button.is-active {
