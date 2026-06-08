@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { boards, categoryMeta, filters, places } from "./data";
+import { googleMapStyle } from "./googleMapStyle";
 import { LILLE_CENTER, googlePinIcon, loadGoogleMaps, scoreLabel } from "./mapUtils";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
@@ -315,7 +316,7 @@ export default function App() {
           gestureHandling: "greedy",
           clickableIcons: false,
           mapTypeControl: false,
-          styles: [{ featureType: "poi.business", stylers: [{ visibility: "off" }] }, { featureType: "transit", stylers: [{ saturation: -35 }] }],
+          styles: googleMapStyle,
         });
         map.current.addListener("zoom_changed", () => setZoom(Math.round(map.current.getZoom())));
         map.current.addListener("click", () => setSelectedPlaceId(null));
