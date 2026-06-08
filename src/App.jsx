@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { boards, categoryMeta, filters, places } from "./data";
+import { boards, categoryMeta, filters, places as fallbackPlaces } from "./data";
 import { googleMapStyle } from "./googleMapStyle";
 import { AppIcon, iconMarkup } from "./iconLibrary.jsx";
 import { LILLE_CENTER, googlePinIcon, loadGoogleMaps, scoreLabel } from "./mapUtils";
+import { fetchPublishedPlaces } from "./placesApi";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 function ScorePill({ score }) {
@@ -16,9 +17,10 @@ function ScorePill({ score }) {
 }
 
 function CategoryMeta({ category, distance }) {
+  const iconId = categoryMeta[category]?.iconId || "map";
   return (
     <span className="place-meta">
-      <AppIcon id={categoryMeta[category].iconId} size={16} />
+      <AppIcon id={iconId} size={16} />
       {category} · {distance.toFixed(1)} km
     </span>
   );
@@ -153,6 +155,7 @@ export default function App() {
   const [pendingAction, setPendingAction] = useState(null);
   const [contribution, setContribution] = useState(null);
   const [board, setBoard] = useState("week");
+  const [places, setPlaces] = useState(fallbackPlaces);
 
   const visiblePlaces = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -161,7 +164,7 @@ export default function App() {
       const matchesFilters = [...activeFilters].every((filter) => place.tags.includes(filter) || place.category === filter);
       return matchesQuery && matchesFilters;
     });
-  }, [activeFilters, query]);
+  }, [activeFilters, places, query]);
 
   const selectedPlace = places.find((place) => place.id === selectedPlaceId);
   const signedIn = Boolean(user);
@@ -252,11 +255,12 @@ export default function App() {
 
     if (mapType.current === "google") {
       items.forEach((place) => {
+        const iconId = categoryMeta[place.category]?.iconId || "map";
         const marker = new window.google.maps.Marker({
           position: { lat: place.lat, lng: place.lng },
           map: map.current,
           title: `${place.name} - ${place.score}/100`,
-          icon: googlePinIcon(place.score, categoryMeta[place.category].iconId),
+          icon: googlePinIcon(place.score, iconId),
           optimized: false,
         });
         marker.addListener("click", () => openPlace(place.id));
@@ -267,9 +271,10 @@ export default function App() {
     if (mapType.current === "leaflet") {
       items.forEach((place) => {
         const [, scoreClass] = scoreLabel(place.score);
+        const iconId = categoryMeta[place.category]?.iconId || "map";
         const marker = window.L.marker([place.lat, place.lng], {
           title: `${place.name} - ${place.score}/100`,
-          icon: window.L.divIcon({ className: `leaflet-kf-icon ${scoreClass}`, html: iconMarkup(categoryMeta[place.category].iconId, 21), iconSize: [44, 44], iconAnchor: [22, 38] }),
+          icon: window.L.divIcon({ className: `leaflet-kf-icon ${scoreClass}`, html: iconMarkup(iconId, 21), iconSize: [44, 44], iconAnchor: [22, 38] }),
         }).addTo(map.current).on("click", () => openPlace(place.id));
         markers.current.push(marker);
       });
@@ -326,6 +331,23 @@ export default function App() {
   }, [activeView]);
 
   useEffect(() => {
+    let mounted = true;
+
+    fetchPublishedPlaces().then((items) => {
+      if (!mounted) return;
+      setPlaces(items);
+      window.setTimeout(() => {
+        fitPlaces(items);
+        renderMapMarkers(items);
+      }, 120);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     let disposed = false;
     async function initMap() {
       try {
@@ -351,7 +373,7 @@ export default function App() {
         window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap" }).addTo(map.current);
         map.current.on("zoomend", () => setZoom(Math.round(map.current.getZoom())));
         map.current.on("click", () => setSelectedPlaceId(null));
-        setProviderBadge("OpenStreetMap - ajoute ?gmapsKey=... pour Google Maps");
+        setProviderBadge("OpenStreetMap - configure VITE_GOOGLE_MAPS_API_KEY pour Google Maps");
       }
       window.setTimeout(() => { refreshMapLayout(); fitPlaces(visiblePlaces); renderMapMarkers(visiblePlaces); locateUser(); }, 120);
     }

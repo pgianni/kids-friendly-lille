@@ -32,13 +32,7 @@ export function googlePinIcon(score, iconId) {
 }
 
 export function googleMapsKey() {
-  return (
-    import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
-    window.KIDS_FRIENDLY_GOOGLE_MAPS_KEY ||
-    new URLSearchParams(window.location.search).get("gmapsKey") ||
-    localStorage.getItem("googleMapsApiKey") ||
-    ""
-  );
+  return import.meta.env.VITE_GOOGLE_MAPS_API_KEY || window.KIDS_FRIENDLY_GOOGLE_MAPS_KEY || "";
 }
 
 export function loadGoogleMaps() {
