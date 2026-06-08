@@ -28,6 +28,7 @@ export function googlePinIcon(score) {
 
 export function googleMapsKey() {
   return (
+    import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
     window.KIDS_FRIENDLY_GOOGLE_MAPS_KEY ||
     new URLSearchParams(window.location.search).get("gmapsKey") ||
     localStorage.getItem("googleMapsApiKey") ||
@@ -36,24 +37,29 @@ export function googleMapsKey() {
 }
 
 export function loadGoogleMaps() {
-  return new Promise((resolve, reject) => {
-    const key = googleMapsKey();
-    if (!key) {
-      reject(new Error("Missing Google Maps API key"));
-      return;
-    }
+  if (window.google?.maps) return Promise.resolve();
+  if (window.__kidsFriendlyGoogleMapsPromise) return window.__kidsFriendlyGoogleMapsPromise;
 
-    if (window.google?.maps) {
-      resolve();
-      return;
-    }
+  const key = googleMapsKey();
+  if (!key) return Promise.reject(new Error("Missing Google Maps API key"));
 
+  window.__kidsFriendlyGoogleMapsPromise = new Promise((resolve, reject) => {
     window.initKidsFriendlyGoogleMap = () => resolve();
+
+    const existingScript = document.querySelector("script[data-kids-friendly-google-maps]");
+    if (existingScript) return;
+
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&callback=initKidsFriendlyGoogleMap`;
+    script.dataset.kidsFriendlyGoogleMaps = "true";
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&callback=initKidsFriendlyGoogleMap&loading=async`;
     script.async = true;
     script.defer = true;
-    script.onerror = () => reject(new Error("Google Maps failed to load"));
+    script.onerror = () => {
+      window.__kidsFriendlyGoogleMapsPromise = null;
+      reject(new Error("Google Maps failed to load"));
+    };
     document.head.append(script);
   });
+
+  return window.__kidsFriendlyGoogleMapsPromise;
 }
